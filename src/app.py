@@ -1,8 +1,10 @@
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
 from fastapi import FastAPI
@@ -25,13 +27,12 @@ app.add_middleware(
     allow_headers=allow_headers,
 )
 
+
 class RequestData(BaseModel):
     question: str
     request_id: str
 
-@app.post('/answer')
+
+@app.post("/answer")
 async def answer(request_data: RequestData):
     return get_analytics(request_data.question, request_data.request_id)
-
-    
-

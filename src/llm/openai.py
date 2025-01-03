@@ -3,15 +3,14 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_openai import ChatOpenAI
 from src.llm.llm_interface import LLMInterface
 
+
 class OpenAILLM(LLMInterface):
     """Azure Open AI Model"""
-    
+
     @staticmethod
     def get_chat_model():
         return ChatOpenAI(
-            temperature=0,
-            model=os.environ["OPENAI_CHAT_MODEL_NAME"],
-            verbose=True
+            temperature=0, model=os.environ["OPENAI_CHAT_MODEL_NAME"], verbose=True
         )
 
     @staticmethod
