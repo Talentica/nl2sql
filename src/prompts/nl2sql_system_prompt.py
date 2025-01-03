@@ -1,3 +1,4 @@
+import os
 from langchain import hub
 
 from langchain_community.vectorstores import FAISS
@@ -8,10 +9,12 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.prompts import FewShotPromptTemplate
 from src.data.examples import query_examples
 from langchain_core.prompts import SystemMessagePromptTemplate
+from src.constants.datatypes import SQL_DIALECTS
 
 def get_nl2sql_prompt():
+    dialect = os.environ['DB_DIALECT']
     prompt_template = hub.pull("langchain-ai/sql-agent-system-prompt")
-    prompt_message = prompt_template.format(dialect="Microsoft SQL Server (mssql)", top_k=5)
+    prompt_message = prompt_template.format(dialect=SQL_DIALECTS[dialect]['full_name'], top_k=5)
     
     if len(query_examples) > 0:
         few_shot_prompt = get_few_shot_prompt(prompt_message)

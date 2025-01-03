@@ -5,8 +5,10 @@ annotated-types==0.7.0
 anyio==4.7.0
 attrs==24.3.0
 certifi==2024.12.14
+cffi==1.17.1
 charset-normalizer==3.4.1
 click==8.1.8
+cryptography==44.0.0
 dataclasses-json==0.6.7
 distro==1.9.0
 faiss-cpu==1.9.0.post1
@@ -32,12 +34,16 @@ multidict==6.1.0
 mypy-extensions==1.0.0
 numpy==2.2.1
 openai==1.58.1
+oracledb==2.5.1
 orjson==3.10.13
 packaging==24.2
 propcache==0.2.1
+psycopg2-binary==2.9.10
+pycparser==2.22
 pydantic==2.10.4
 pydantic-settings==2.7.1
 pydantic_core==2.27.2
+PyMySQL==1.1.1
 pyodbc==5.2.0
 python-dotenv==1.0.1
 PyYAML==6.0.2
