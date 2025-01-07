@@ -70,7 +70,7 @@ class VectorStoreFactory:
     @staticmethod
     def _create_qdrant_cloud(vector_index_name: str, embeddings: Any) -> QdrantHandler:
         qdrant_url = get_env_var("QDRANT_CLOUD_URL", required=True)
-        qdrant_api_key = get_env_var("QDRANT_CLOUD_API_KEY", required=True)
+        qdrant_api_key = get_env_var("QDRANT_CLOUD_API_KEY", required=False)
         return QdrantHandler(
             collection_name=vector_index_name,
             embeddings=embeddings,
@@ -103,7 +103,7 @@ def get_env_var(key: str, required: bool = False) -> str:
     """
     Retrieve an environment variable.
     """
-    value = os.environ.get(key)
+    value = os.environ.get(key, None)
     if required and not value:
         raise ValueError(f"Environment variable '{key}' is required but not set.")
     return value

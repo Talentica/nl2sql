@@ -16,7 +16,6 @@ class AzureSearchHandler(BaseVectorStoreHandler):
         self.embeddings = embeddings
 
     def store_documents(self, documents):
-        self.delete_index()
         vector_store = self._get_azure_vector_store()
         vector_store.add_documents(documents=documents)
 

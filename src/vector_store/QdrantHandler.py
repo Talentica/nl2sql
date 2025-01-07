@@ -52,12 +52,6 @@ class QdrantHandler(BaseVectorStoreHandler):
 
         self._create_collection()
 
-        self.vector_store = QdrantVectorStore(
-            client=self.client,
-            collection_name=collection_name,
-            embedding=embeddings,
-        )
-
     def _initialize_client(self, **kwargs):
         """
         Initialize the Qdrant client based on the provided storage type.

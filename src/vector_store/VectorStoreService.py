@@ -1,4 +1,5 @@
 import os
+import uuid
 from langchain_community.document_loaders import DirectoryLoader
 from src.vector_store.VectorStoreFactory import VectorStoreFactory
 
@@ -28,4 +29,10 @@ class VectorStoreService:
             doc_dir_path = os.path.abspath(os.path.join(project_root, doc_dir_path))
 
         loader = DirectoryLoader(doc_dir_path)
-        return loader.load()
+        documents = loader.load()
+
+        for doc in documents:
+            doc.id = str(uuid.uuid4())
+            doc.metadata["id"] = doc.id
+
+        return documents
