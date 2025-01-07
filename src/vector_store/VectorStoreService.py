@@ -14,6 +14,12 @@ class VectorStoreService:
         documents = self._get_documents(doc_dir_path)
         self.handler.store_documents(documents)
 
+    def recreate_index(self):
+        self.handler.recreate_index()
+
+    def is_index_exist(self):
+        self.handler.is_index_exist()
+
     def delete_index(self):
         self.handler.delete_index()
 

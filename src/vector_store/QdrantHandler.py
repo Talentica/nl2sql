@@ -78,6 +78,19 @@ class QdrantHandler(BaseVectorStoreHandler):
                 f"Invalid storage_type: {self.storage_type}. Valid options are 'local' or 'cloud'."
             )
 
+    def recreate_index(self):
+        self._create_collection()
+
+    def is_index_exist(self):
+        """
+        Check if index already exist.
+        """
+        try:
+            self.client.get_collection(collection_name=self.collection_name)
+            return True
+        except Exception:
+            return False
+
     def store_documents(self, documents):
         # Generate embeddings for documents
         texts = [doc.page_content for doc in documents]
@@ -121,11 +134,7 @@ class QdrantHandler(BaseVectorStoreHandler):
         """
         Create a new collection in Qdrant if it doesn't already exist.
         """
-        try:
-            # Check if the collection exists
-            self.client.get_collection(collection_name=self.collection_name)
-        except Exception:
-            # If collection doesn't exist, create a new one
+        if not self.is_index_exist():
             self.client.create_collection(
                 collection_name=self.collection_name,
                 vectors_config=VectorParams(size=3072, distance=Distance.COSINE),

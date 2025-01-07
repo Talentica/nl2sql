@@ -5,6 +5,7 @@ from src.llm.llm_provider import LLMProvider
 from src.vector_store.QdrantHandler import QdrantHandler
 from src.vector_store.FAISSHandler import FAISSHandler
 from src.vector_store.AzureSearchHandler import AzureSearchHandler
+from src.vector_store.BaseVectorStoreHandler import BaseVectorStoreHandler
 
 
 class VectorDBProvider(Enum):
@@ -18,7 +19,7 @@ class VectorStoreFactory:
     """Factory to create vector store instances based on environment configuration."""
 
     @staticmethod
-    def get_vector_store(index_name: str) -> Any:
+    def get_vector_store(index_name: str) -> BaseVectorStoreHandler:
         """
         Returns a vector store instance based on the environment configuration.
 
@@ -81,7 +82,10 @@ class VectorStoreFactory:
 
     @staticmethod
     def _create_faiss_local(index_name: str, embeddings: Any) -> FAISSHandler:
-        return FAISSHandler(index_name=index_name, embeddings=embeddings)
+        faiss_db_path = get_env_var("FAISS_LOCAL_VECTOR_DB_PATH", required=True)
+        return FAISSHandler(
+            index_name=index_name, embeddings=embeddings, faiss_path=faiss_db_path
+        )
 
     @staticmethod
     def _create_azure_search(
