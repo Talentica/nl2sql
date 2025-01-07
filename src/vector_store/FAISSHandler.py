@@ -9,34 +9,48 @@ from src.vector_store.BaseVectorStoreHandler import BaseVectorStoreHandler
 class FAISSHandler(BaseVectorStoreHandler):
     """Handler for FAISS operations."""
 
-    def __init__(self, local_vector_path, embeddings):
-        self.local_vector_path = local_vector_path
+    def __init__(self, index_name, embeddings):
+        self.index_name = index_name
         self.embeddings = embeddings
-        self.vector_store = self._create_vector_store()
+        self.faiss_db_path = os.environ.get("FAISS_LOCAL_VECTOR_DB_PATH")
+        if not self.faiss_db_path:
+            raise ValueError(
+                "FAISS_LOCAL_VECTOR_DB_PATH is required for local FAISS disk storage."
+            )
 
     def store_documents(self, documents):
-        self.vector_store.add_documents(documents)
-        self.vector_store.save_local(self.local_vector_path)
+        vector_store = self._get_FAISS_db()
+        vector_store.add_documents(documents)
+        vector_store.save_local(
+            folder_path=self.faiss_db_path, index_name=self.index_name
+        )
 
     def delete_index(self):
-        if os.path.exists(self.local_vector_path):
-            shutil.rmtree(self.local_vector_path)
-            print(f"Deleted FAISS vector store at: {self.local_vector_path}")
+        if os.path.exists(self.faiss_db_path):
+            self._delete_file(
+                file_path="{0}/{1}.faiss".format(self.faiss_db_path, self.index_name)
+            )
+            self._delete_file(
+                file_path="{0}/{1}.pkl".format(self.faiss_db_path, self.index_name)
+            )
+            print(f"Deleted FAISS vector store index: {self.index_name}")
 
     def retrieve_documents(self, query, k):
         db = FAISS.load_local(
-            self.local_vector_path,
+            self.faiss_db_path,
             self.embeddings,
+            index_name=self.index_name,
             allow_dangerous_deserialization=True,
         )
         retriever = db.as_retriever(search_type="similarity", search_kwargs={"k": k})
         return retriever.invoke(query)
 
-    def _create_vector_store(self):
+    def _get_FAISS_db(self):
         try:
             return FAISS.load_local(
-                self.local_vector_path,
-                self.embeddings,
+                folder_path=self.faiss_db_path,
+                embeddings=self.embeddings,
+                index_name=self.index_name,
                 allow_dangerous_deserialization=True,
             )
         except Exception:
@@ -47,3 +61,25 @@ class FAISSHandler(BaseVectorStoreHandler):
                 docstore=InMemoryDocstore(),
                 index_to_docstore_id={},
             )
+
+    def _delete_file(self, file_path):
+        """
+        Deletes a file from disk storage given its relative or absolute path.
+
+        Parameters:
+        file_path (str): The relative or absolute path of the file to be deleted.
+
+        Returns:
+        bool: True if the file was successfully deleted, False otherwise.
+        """
+        try:
+            # Check if the file exists
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+                return True
+            else:
+                print(f"File '{file_path}' does not exist.")
+                return False
+        except Exception as e:
+            print(f"An error occurred while trying to delete the file: {e}")
+            return False

@@ -18,12 +18,12 @@ class VectorStoreFactory:
     """Factory to create vector store instances based on environment configuration."""
 
     @staticmethod
-    def get_vector_store(index_name_or_path: str) -> Any:
+    def get_vector_store(index_name: str) -> Any:
         """
         Returns a vector store instance based on the environment configuration.
 
         Args:
-            index_name_or_path (str): The name or path(in case of FAISS local) of the vector index.
+            index_name (str): The name of the vector index.
 
         Returns:
             Any: An instance of the vector store handler.
@@ -55,7 +55,7 @@ class VectorStoreFactory:
                 f"Unhandled provider: {provider}. This should never happen."
             )
 
-        return handler_mapping[provider](index_name_or_path, embeddings)
+        return handler_mapping[provider](index_name, embeddings)
 
     @staticmethod
     def _create_qdrant_local(vector_index_name: str, embeddings: Any) -> QdrantHandler:
@@ -80,8 +80,8 @@ class VectorStoreFactory:
         )
 
     @staticmethod
-    def _create_faiss_local(vector_index_path: str, embeddings: Any) -> FAISSHandler:
-        return FAISSHandler(local_vector_path=vector_index_path, embeddings=embeddings)
+    def _create_faiss_local(index_name: str, embeddings: Any) -> FAISSHandler:
+        return FAISSHandler(index_name=index_name, embeddings=embeddings)
 
     @staticmethod
     def _create_azure_search(
