@@ -8,14 +8,14 @@ from qdrant_client.http.models import Distance
 from langchain_core.documents import Document
 
 
-class QdrantDiskHandler(BaseVectorStoreHandler):
-    """Handler for Qdrant On-Disk Storage vector store."""
+class QdrantHandler(BaseVectorStoreHandler):
+    """Handler for Qdrant vector store."""
 
     def __init__(
         self,
         collection_name: str,
         embeddings: OpenAIEmbeddings,
-        path: str = "./vector_index",
+        storage_type: str,
         **kwargs,
     ):
         """
@@ -24,19 +24,19 @@ class QdrantDiskHandler(BaseVectorStoreHandler):
         Args:
             storage_type (str): Specifies the Qdrant storage type.
                                 Options:
-                                - "disk": Use Qdrant in on-disk mode.
+                                - "local": Use Qdrant in on-disk mode.
                                 - "cloud": Use Qdrant Cloud.
             collection_name (str): The name of the Qdrant collection to operate on.
             embeddings (OpenAIEmbeddings): The embedding model to generate vector embeddings.
             kwargs: Additional configuration parameters based on the storage type.
 
         Keyword Args:
-            For "disk" storage_type:
+            For "local" storage_type:
                 - qdrant_path (str): The file system path for Qdrant on-disk storage.
                 Example: "./qdrant_data".
 
             For "cloud" storage_type:
-                - cloud_url (str): The URL of the Qdrant Cloud instance.
+                - url (str): The URL of the On-premise server deployment or Qdrant Cloud instance.
                 Example: "https://<your-qdrant-cloud-instance-url>".
                 - api_key (str): The API key for authenticating with Qdrant Cloud.
 
@@ -44,10 +44,11 @@ class QdrantDiskHandler(BaseVectorStoreHandler):
             ValueError: If invalid `storage_type` is provided or required arguments for the chosen
                         storage type are missing.
         """
+        self.storage_type = storage_type
         self.collection_name = collection_name
         self.embeddings = embeddings
 
-        self.client = QdrantClient(path=path)
+        self.client = self._initialize_client(**kwargs)
 
         self._create_collection()
 
@@ -56,6 +57,32 @@ class QdrantDiskHandler(BaseVectorStoreHandler):
             collection_name=collection_name,
             embedding=embeddings,
         )
+
+    def _initialize_client(self, **kwargs):
+        """
+        Initialize the Qdrant client based on the provided storage type.
+        """
+        if self.storage_type == "local":
+            qdrant_path = kwargs.get("qdrant_path", None)
+            if not qdrant_path:
+                raise ValueError(
+                    "qdrant_path is required for local quadrant disk storage."
+                )
+            return QdrantClient(path=qdrant_path)
+
+        elif self.storage_type == "cloud":
+            url = kwargs.get("url", None)
+            api_key = kwargs.get("api_key", None)
+            if not url:
+                raise ValueError(
+                    "url is required for On-premise server deployment or Qdrant Cloud."
+                )
+            return QdrantClient(url=url, api_key=api_key)
+
+        else:
+            raise ValueError(
+                f"Invalid storage_type: {self.storage_type}. Valid options are 'local' or 'cloud'."
+            )
 
     def store_documents(self, documents):
         # Generate embeddings for documents
