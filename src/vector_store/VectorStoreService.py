@@ -1,16 +1,16 @@
 import os
-from src.vector_store.VectorStoreFactory import VectorStoreFactory
 from langchain_community.document_loaders import DirectoryLoader
+from src.vector_store.VectorStoreFactory import VectorStoreFactory
 
 
 class VectorStoreService:
     """Unified service to manage vector store operations."""
 
-    def __init__(self):
-        self.handler = VectorStoreFactory.get_vector_store()
+    def __init__(self, vector_index_name):
+        self.handler = VectorStoreFactory.get_vector_store(vector_index_name)
 
-    def store_documents(self, doc_dir: str):
-        documents = self._get_documents(doc_dir)
+    def store_documents(self, doc_dir_path: str):
+        documents = self._get_documents(doc_dir_path)
         self.handler.store_documents(documents)
 
     def delete_index(self):
@@ -19,12 +19,13 @@ class VectorStoreService:
     def retrieve_documents(self, query: str, k: int):
         return self.handler.retrieve_documents(query, k)
 
-    def _get_documents(self, dir_name: str):
+    def _get_documents(self, doc_dir_path: str):
         """Loads documents from a directory."""
-        current_file_path = os.path.abspath(__file__)
-        main_dir = os.path.dirname(current_file_path)
-        sub_folder_path = os.path.join(main_dir, "..", "data", dir_name)
-        doc_dir_abs_path = os.path.abspath(sub_folder_path)
+        if not os.path.isabs(doc_dir_path):
+            # Convert relative path to absolute path relative to the root directory
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            project_root = os.path.join(script_dir, "..", "..")
+            doc_dir_path = os.path.abspath(os.path.join(project_root, doc_dir_path))
 
-        loader = DirectoryLoader(doc_dir_abs_path)
+        loader = DirectoryLoader(doc_dir_path)
         return loader.load()

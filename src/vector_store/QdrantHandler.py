@@ -2,10 +2,10 @@
 from qdrant_client import QdrantClient
 from qdrant_client.models import PointStruct, VectorParams
 from langchain_openai.embeddings.base import OpenAIEmbeddings
-from src.vector_store.BaseVectorStoreHandler import BaseVectorStoreHandler
 from langchain_qdrant import QdrantVectorStore
 from qdrant_client.http.models import Distance
 from langchain_core.documents import Document
+from src.vector_store.BaseVectorStoreHandler import BaseVectorStoreHandler
 
 
 class QdrantHandler(BaseVectorStoreHandler):

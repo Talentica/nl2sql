@@ -1,52 +1,109 @@
 import os
+from enum import Enum
+from typing import Any
 from src.llm.llm_provider import LLMProvider
 from src.vector_store.QdrantHandler import QdrantHandler
+from src.vector_store.FAISSHandler import FAISSHandler
+from src.vector_store.AzureSearchHandler import AzureSearchHandler
+
+
+class VectorDBProvider(Enum):
+    QDRANT_LOCAL = "qdrant_local"
+    QDRANT_CLOUD = "qdrant_cloud"
+    FAISS_LOCAL = "faiss_local"
+    AZURE_SEARCH = "azure_search"
 
 
 class VectorStoreFactory:
     """Factory to create vector store instances based on environment configuration."""
 
     @staticmethod
-    def get_vector_store():
+    def get_vector_store(index_name_or_path: str) -> Any:
+        """
+        Returns a vector store instance based on the environment configuration.
+
+        Args:
+            index_name_or_path (str): The name or path(in case of FAISS local) of the vector index.
+
+        Returns:
+            Any: An instance of the vector store handler.
+
+        Raises:
+            ValueError: If required environment variables are missing or invalid.
+        """
         embeddings = LLMProvider.get_embedding_model()
 
-        qdrant_collection_name = os.environ.get("QDRANT_VECTOR_COLLECTION_NAME")
-        if not qdrant_collection_name:
+        vector_db_provider = get_env_var("VECTOR_DB_PROVIDER", required=True)
+
+        try:
+            provider = VectorDBProvider(vector_db_provider)
+        except ValueError:
             raise ValueError(
-                "Environment variable 'QDRANT_VECTOR_COLLECTION_NAME' is required for Qdrant Vector Store."
+                f"Invalid VECTOR_DB_PROVIDER: {vector_db_provider}. "
+                f"Valid options are {[provider.value for provider in VectorDBProvider]}"
             )
 
-        qdrant_vector_store_type = os.environ.get("QDRANT_VECTOR_STORE_TYPE")
+        handler_mapping = {
+            VectorDBProvider.QDRANT_LOCAL: VectorStoreFactory._create_qdrant_local,
+            VectorDBProvider.QDRANT_CLOUD: VectorStoreFactory._create_qdrant_cloud,
+            VectorDBProvider.FAISS_LOCAL: VectorStoreFactory._create_faiss_local,
+            VectorDBProvider.AZURE_SEARCH: VectorStoreFactory._create_azure_search,
+        }
 
-        if qdrant_vector_store_type == "local":
-            qdrant_local_db_path = os.environ.get("QDRANT_LOCAL_VECTOR_DB_PATH")
-            if not qdrant_local_db_path:
-                raise ValueError(
-                    "Environment variable 'QDRANT_LOCAL_VECTOR_DB_PATH' is required for Qdrant Disk Vector Store."
-                )
-            return QdrantHandler(
-                collection_name=qdrant_collection_name,
-                embeddings=embeddings,
-                storage_type="local",
-                qdrant_path=qdrant_local_db_path,
-            )
-
-        elif qdrant_vector_store_type == "cloud":
-            qdrant_url = os.environ.get("QDRANT_CLOUD_URL")
-            qdrant_api_key = os.environ.get("QDRANT_CLOUD_API_KEY")
-            if not qdrant_url:
-                raise ValueError(
-                    "Environment variable 'QDRANT_CLOUD_URL' is required for Qdrant Cloud Vector Store."
-                )
-            return QdrantHandler(
-                collection_name=qdrant_collection_name,
-                embeddings=embeddings,
-                storage_type="cloud",
-                url=qdrant_url,
-                api_key=qdrant_api_key,
-            )
-
-        else:
+        if provider not in handler_mapping:
             raise ValueError(
-                f"Invalid storage_type: {qdrant_vector_store_type}. Valid options are 'local' or 'cloud'."
+                f"Unhandled provider: {provider}. This should never happen."
             )
+
+        return handler_mapping[provider](index_name_or_path, embeddings)
+
+    @staticmethod
+    def _create_qdrant_local(vector_index_name: str, embeddings: Any) -> QdrantHandler:
+        qdrant_local_db_path = get_env_var("QDRANT_LOCAL_VECTOR_DB_PATH", required=True)
+        return QdrantHandler(
+            collection_name=vector_index_name,
+            embeddings=embeddings,
+            storage_type="local",
+            qdrant_path=qdrant_local_db_path,
+        )
+
+    @staticmethod
+    def _create_qdrant_cloud(vector_index_name: str, embeddings: Any) -> QdrantHandler:
+        qdrant_url = get_env_var("QDRANT_CLOUD_URL", required=True)
+        qdrant_api_key = get_env_var("QDRANT_CLOUD_API_KEY", required=True)
+        return QdrantHandler(
+            collection_name=vector_index_name,
+            embeddings=embeddings,
+            storage_type="cloud",
+            url=qdrant_url,
+            api_key=qdrant_api_key,
+        )
+
+    @staticmethod
+    def _create_faiss_local(vector_index_path: str, embeddings: Any) -> FAISSHandler:
+        return FAISSHandler(local_vector_path=vector_index_path, embeddings=embeddings)
+
+    @staticmethod
+    def _create_azure_search(
+        vector_index_name: str, embeddings: Any
+    ) -> AzureSearchHandler:
+        vector_store_address = get_env_var("AZURE_VECTOR_STORE_URL", required=True)
+        vector_store_password = get_env_var(
+            "AZURE_VECTOR_STORE_PASSWORD", required=True
+        )
+        return AzureSearchHandler(
+            vector_store_address,
+            vector_store_password,
+            vector_index_name,
+            embeddings,
+        )
+
+
+def get_env_var(key: str, required: bool = False) -> str:
+    """
+    Retrieve an environment variable.
+    """
+    value = os.environ.get(key)
+    if required and not value:
+        raise ValueError(f"Environment variable '{key}' is required but not set.")
+    return value
