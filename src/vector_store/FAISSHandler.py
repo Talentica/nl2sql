@@ -1,5 +1,4 @@
 import os
-import shutil
 import faiss
 from langchain_community.vectorstores import FAISS
 from langchain_community.docstore.in_memory import InMemoryDocstore
@@ -65,12 +64,6 @@ class FAISSHandler(BaseVectorStoreHandler):
     def _delete_file(self, file_path):
         """
         Deletes a file from disk storage given its relative or absolute path.
-
-        Parameters:
-        file_path (str): The relative or absolute path of the file to be deleted.
-
-        Returns:
-        bool: True if the file was successfully deleted, False otherwise.
         """
         try:
             # Check if the file exists
