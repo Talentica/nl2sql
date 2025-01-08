@@ -1,4 +1,4 @@
-"""Module providing a langchain tool for table retriever."""
+"""Module to creat and store vector index for DB Schema"""
 
 import os
 import sys
@@ -49,21 +49,19 @@ def store_vector_index(doc_dir: str):
 
 if __name__ == "__main__":
 
-    table_schema_path = os.environ.get("TABLE_SCHEMA_PATH")
-    view_schema_path = os.environ.get("VIEW_SCHEMA_PATH")
-    function_schema_path = os.environ.get("FUNCTION_SCHEMA_PATH")
-    procedure_schema_path = os.environ.get("PROCEDURE_SCHEMA_PATH")
-    vector_index_name = os.environ.get("QDRANT_VECTOR_INDEX_NAME")
-    local_vector_path = os.environ.get("QDRANT_LOCAL_VECTOR_DB_PATH")
-
-    if os.path.exists(local_vector_path):
-        print("Deleting existing local vector directory: {local_vector_path}")
-        shutil.rmtree(local_vector_path)
-
+    vector_index_name = os.environ.get("DB_SCHEMA_VECTOR_INDEX_NAME")
     vector_store_service = VectorStoreFactory.get_vector_store("vector_index_name")
 
-    store_vector_index(doc_dir=table_schema_path)
-    store_vector_index(doc_dir=view_schema_path)
-    store_vector_index(doc_dir=function_schema_path)
-    store_vector_index(doc_dir=procedure_schema_path)
+    db_schema_path = os.environ["DB_SCHEMA_PATH"]
+
+    # Getting the list of schemas available
+    db_schema_folders = [
+        name
+        for name in os.listdir(db_schema_path)
+        if os.path.isdir(os.path.join(db_schema_path, name))
+    ]
+    # Creating and storing vector index for each schema
+    for schema in db_schema_folders:
+        schema_path = os.path.join(db_schema_path, schema)
+        store_vector_index(doc_dir=schema_path)
     print("Vector store created successfully!")

@@ -344,7 +344,7 @@ def format_function_details_as_markdown(function_name, details):
         markdown += "| Name | Type | Mode |\n"
         markdown += "|------|------|------|\n"
         for param in details["parameters"]:
-            markdown += f"| {param['name']} | {param['type']} | {param['mode']} |\n"
+            markdown += f"| {param['name']} | {param['type']} | {param['mode']} |\n\n"
     markdown += f"### Output Type\n{details['return_type']}\n"
     return markdown
 
@@ -364,68 +364,73 @@ def save_markdown_file(folder_path, file_name, content):
 
 def main():
     engine = connect_to_database()
+    db_schema_path = os.environ["DB_SCHEMA_PATH"]
 
     table_names = get_table_name(engine)
-    for table_name in table_names:
-        schema = get_table_schema(engine, table_name)
-        sample_rows = get_sample_rows(engine, table_name)
+    if len(table_names) > 0:
+        for table_name in table_names:
+            schema = get_table_schema(engine, table_name)
+            sample_rows = get_sample_rows(engine, table_name)
 
-        if schema:
-            # Format schema as markdown
-            schema_md = format_table_schema_as_markdown(schema, table_name, sample_rows)
-            # save md file
-
-            file_name = table_name + str(".md")
-            save_markdown_file(os.environ["TABLE_SCHEMA_PATH"], file_name, schema_md)
-        else:
-            print("Failed to retrieve table schema.")
+            if schema:
+                # Format schema as markdown
+                schema_md = format_table_schema_as_markdown(
+                    schema, table_name, sample_rows
+                )
+                # save md file
+                folder_name = os.path.join(db_schema_path, "table-schema")
+                file_name = table_name + str(".md")
+                save_markdown_file(folder_name, file_name, schema_md)
+            else:
+                print("Failed to retrieve table schema.")
 
     view_names = get_views(engine)
-    for view in view_names:
+    if len(view_names) > 0:
+        for view in view_names:
 
-        details = get_view_details(engine, view)
+            details = get_view_details(engine, view)
 
-        if details:
-            # Format schema as markdown
-            schema_md = format_view_details_as_markdown(view, details)
-            # save md file
-
-            file_name = view + str(".md")
-            save_markdown_file(os.environ["VIEW_SCHEMA_PATH"], file_name, schema_md)
-        else:
-            print("Failed to retrieve views schema.")
+            if details:
+                # Format schema as markdown
+                schema_md = format_view_details_as_markdown(view, details)
+                # save md file
+                folder_name = os.path.join(db_schema_path, "view-schema")
+                file_name = view + str(".md")
+                save_markdown_file(folder_name, file_name, schema_md)
+            else:
+                print("Failed to retrieve views schema.")
 
     procedure_names = get_stored_procedures(engine)
-    for procedure in procedure_names:
+    if len(procedure_names) > 0:
+        for procedure in procedure_names:
 
-        details = get_procedure_details(engine, procedure)
+            details = get_procedure_details(engine, procedure)
 
-        if details:
-            # Format schema as markdown
-            schema_md = format_procedure_details_as_markdown(procedure, details)
-            # save md file
-
-            file_name = procedure + str(".md")
-            save_markdown_file(
-                os.environ["PROCEDURE_SCHEMA_PATH"], file_name, schema_md
-            )
-        else:
-            print("Failed to retrieve procedures schema.")
+            if details:
+                # Format schema as markdown
+                schema_md = format_procedure_details_as_markdown(procedure, details)
+                # save md file
+                folder_name = os.path.join(db_schema_path, "procedure-schema")
+                file_name = procedure + str(".md")
+                save_markdown_file(folder_name, file_name, schema_md)
+            else:
+                print("Failed to retrieve procedures schema.")
 
     function_names = get_stored_functions(engine)
-    for function in function_names:
+    if len(function_names) > 0:
+        for function in function_names:
 
-        details = get_function_details(engine, function)
+            details = get_function_details(engine, function)
 
-        if details:
-            # Format schema as markdown
-            schema_md = format_function_details_as_markdown(function, details)
-            # save md file
-
-            file_name = function + str(".md")
-            save_markdown_file(os.environ["FUNCTION_SCHEMA_PATH"], file_name, schema_md)
-        else:
-            print("Failed to retrieve function schema.")
+            if details:
+                # Format schema as markdown
+                schema_md = format_function_details_as_markdown(function, details)
+                # save md file
+                folder_name = os.path.join(db_schema_path, "function-schema")
+                file_name = function + str(".md")
+                save_markdown_file(folder_name, file_name, schema_md)
+            else:
+                print("Failed to retrieve function schema.")
 
 
 if __name__ == "__main__":
