@@ -14,15 +14,15 @@ class AzureSearchHandler(BaseVectorStoreHandler):
         self.vector_store_password = vector_store_password
         self.azure_index_name = azure_index_name
         self.embeddings = embeddings
-        self.vector_store = self._get_azure_vector_store()
+        self.vector_store = self._get_existing_azure_search()
 
     def store_documents(self, documents):
         self.vector_store.add_documents(documents=documents)
 
-    def recreate_index(self):
+    def create_index(self):
         self.vector_store = self._get_azure_vector_store()
 
-    def is_index_exist(self):
+    def index_exists(self):
         client = SearchIndexClient(
             self.vector_store_address, AzureKeyCredential(self.vector_store_password)
         )
@@ -33,6 +33,9 @@ class AzureSearchHandler(BaseVectorStoreHandler):
             return False
 
     def delete_index(self):
+        if not self.index_exists():
+            raise Exception(f"Index {self.azure_index_name} does not exist!")
+
         client = SearchIndexClient(
             self.vector_store_address, AzureKeyCredential(self.vector_store_password)
         )
@@ -52,3 +55,8 @@ class AzureSearchHandler(BaseVectorStoreHandler):
             embedding_function=self.embeddings.embed_query,
             additional_search_client_options={"retry_total": 4},
         )
+
+    def _get_existing_azure_search(self):
+        if self.index_exists():
+            return self._get_azure_vector_store()
+        return None

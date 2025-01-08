@@ -49,8 +49,6 @@ class QdrantHandler(BaseVectorStoreHandler):
 
         self.client = self._initialize_client(**kwargs)
 
-        self._create_collection()
-
     def _initialize_client(self, **kwargs):
         """
         Initialize the Qdrant client based on the provided storage type.
@@ -77,10 +75,14 @@ class QdrantHandler(BaseVectorStoreHandler):
                 f"Invalid storage_type: {self.storage_type}. Valid options are 'local' or 'cloud'."
             )
 
-    def recreate_index(self):
-        self._create_collection()
+    def create_index(self):
+        self.client.create_collection(
+            collection_name=self.collection_name,
+            vectors_config=VectorParams(size=3072, distance=Distance.COSINE),
+        )
+        print(f"Collection '{self.collection_name}' created successfully.")
 
-    def is_index_exist(self):
+    def index_exists(self):
         """
         Check if index already exist.
         """
@@ -128,14 +130,3 @@ class QdrantHandler(BaseVectorStoreHandler):
             for hit in results
         ]
         return documents
-
-    def _create_collection(self):
-        """
-        Create a new collection in Qdrant if it doesn't already exist.
-        """
-        if not self.is_index_exist():
-            self.client.create_collection(
-                collection_name=self.collection_name,
-                vectors_config=VectorParams(size=3072, distance=Distance.COSINE),
-            )
-            print(f"Collection '{self.collection_name}' created successfully.")

@@ -4,11 +4,11 @@ from langchain_core.documents import Document
 class BaseVectorStoreHandler:
     """Base class for vector store handlers."""
 
-    def recreate_index(self):
-        """Recreate the vector index. Initializes or resets the index to a new state."""
+    def create_index(self):
+        """Create the vector index. Initializes or resets the index to a new state."""
         raise NotImplementedError
 
-    def is_index_exist(self) -> bool:
+    def index_exists(self) -> bool:
         """
         Check if the vector index exists.
             Returns:

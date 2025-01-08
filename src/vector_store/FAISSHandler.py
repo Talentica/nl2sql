@@ -20,10 +20,16 @@ class FAISSHandler(BaseVectorStoreHandler):
             folder_path=self.faiss_db_path, index_name=self.index_name
         )
 
-    def recreate_index(self):
-        self.vector_store = self._get_FAISS_db()
+    def create_index(self):
+        index = faiss.IndexFlatL2(len(self.embeddings.embed_query("hello world")))
+        self.vector_store = FAISS(
+            embedding_function=self.embeddings,
+            index=index,
+            docstore=InMemoryDocstore(),
+            index_to_docstore_id={},
+        )
 
-    def is_index_exist(self):
+    def index_exists(self):
         if os.path.exists(self.faiss_db_path):
             faiss_file = "{0}/{1}.faiss".format(self.faiss_db_path, self.index_name)
             pkl_file = "{0}/{1}.pkl".format(self.faiss_db_path, self.index_name)
@@ -44,20 +50,14 @@ class FAISSHandler(BaseVectorStoreHandler):
         return retriever.invoke(query)
 
     def _get_FAISS_db(self):
-        if self.is_index_exist():
+        if self.index_exists():
             return FAISS.load_local(
                 folder_path=self.faiss_db_path,
                 embeddings=self.embeddings,
                 index_name=self.index_name,
                 allow_dangerous_deserialization=True,
             )
-        index = faiss.IndexFlatL2(len(self.embeddings.embed_query("hello world")))
-        return FAISS(
-            embedding_function=self.embeddings,
-            index=index,
-            docstore=InMemoryDocstore(),
-            index_to_docstore_id={},
-        )
+        return None
 
     def _delete_file(self, file_path):
         """
