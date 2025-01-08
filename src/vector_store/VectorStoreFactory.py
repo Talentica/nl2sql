@@ -34,7 +34,7 @@ class VectorStoreFactory:
         """
         embeddings = LLMProvider.get_embedding_model()
 
-        vector_db_provider = get_env_var("VECTOR_DB_PROVIDER", required=True)
+        vector_db_provider = _get_env_var("VECTOR_DB_PROVIDER", required=True)
 
         try:
             provider = VectorDBProvider(vector_db_provider)
@@ -60,7 +60,9 @@ class VectorStoreFactory:
 
     @staticmethod
     def _create_qdrant_local(vector_index_name: str, embeddings: Any) -> QdrantHandler:
-        qdrant_local_db_path = get_env_var("QDRANT_LOCAL_VECTOR_DB_PATH", required=True)
+        qdrant_local_db_path = _get_env_var(
+            "QDRANT_LOCAL_VECTOR_DB_PATH", required=True
+        )
         return QdrantHandler(
             collection_name=vector_index_name,
             embeddings=embeddings,
@@ -70,8 +72,8 @@ class VectorStoreFactory:
 
     @staticmethod
     def _create_qdrant_cloud(vector_index_name: str, embeddings: Any) -> QdrantHandler:
-        qdrant_url = get_env_var("QDRANT_CLOUD_URL", required=True)
-        qdrant_api_key = get_env_var("QDRANT_CLOUD_API_KEY", required=False)
+        qdrant_url = _get_env_var("QDRANT_CLOUD_URL", required=True)
+        qdrant_api_key = _get_env_var("QDRANT_CLOUD_API_KEY", required=False)
         return QdrantHandler(
             collection_name=vector_index_name,
             embeddings=embeddings,
@@ -82,7 +84,7 @@ class VectorStoreFactory:
 
     @staticmethod
     def _create_faiss_local(index_name: str, embeddings: Any) -> FAISSHandler:
-        faiss_db_path = get_env_var("FAISS_LOCAL_VECTOR_DB_PATH", required=True)
+        faiss_db_path = _get_env_var("FAISS_LOCAL_VECTOR_DB_PATH", required=True)
         return FAISSHandler(
             index_name=index_name, embeddings=embeddings, faiss_path=faiss_db_path
         )
@@ -91,8 +93,8 @@ class VectorStoreFactory:
     def _create_azure_search(
         vector_index_name: str, embeddings: Any
     ) -> AzureSearchHandler:
-        vector_store_address = get_env_var("AZURE_VECTOR_STORE_URL", required=True)
-        vector_store_password = get_env_var(
+        vector_store_address = _get_env_var("AZURE_VECTOR_STORE_URL", required=True)
+        vector_store_password = _get_env_var(
             "AZURE_VECTOR_STORE_PASSWORD", required=True
         )
         return AzureSearchHandler(
@@ -103,7 +105,7 @@ class VectorStoreFactory:
         )
 
 
-def get_env_var(key: str, required: bool = False) -> str:
+def _get_env_var(key: str, required: bool = False) -> str:
     """
     Retrieve an environment variable.
     """
