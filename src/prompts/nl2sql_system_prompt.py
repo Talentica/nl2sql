@@ -19,6 +19,21 @@ def get_nl2sql_prompt():
         dialect=SQL_DIALECTS[dialect]["full_name"], top_k=5
     )
 
+    prompt_message += """
+    ### Output format:
+
+    Your response must be in JSON format:
+    ```json
+    {{
+        "message": "answer to users queston in markdown format. Use tables to display multiple records",
+        "sql_query": "Executed SQL query or queries",
+        "status": "SUCCESS/FAILURE. If no data found for the given query, that's not considered as FAILURE"
+    }}
+    ```
+
+    **Note**: Always rely on the tools and instructions, never generate data-related output on your own.
+    """
+
     if len(query_examples) > 0:
         few_shot_prompt = get_few_shot_prompt(prompt_message)
         final_prompt = SystemMessagePromptTemplate(prompt=few_shot_prompt)

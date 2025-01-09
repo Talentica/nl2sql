@@ -28,8 +28,8 @@ def get_agent_response(agent_input, request_id):
         print(f"chat_result: {chat_result}")
         api_response = {}
         try:
-            # api_response = parser.parse(chat_result['output'])
-            api_response = {"message": chat_result["output"]}
+            api_response = parser.parse(chat_result["output"])
+            # api_response = {"message": chat_result["output"]}
         except Exception as e:
             print(f"error in response parsing | {e}")
             api_response = {"message": FAILURE_MESSAGE, "status": "FAILURE", "error": e}
