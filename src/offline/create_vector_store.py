@@ -1,4 +1,4 @@
-"""Module to creat and store vector index for DB Schema"""
+"""Module to create and store vector index for DB Schema"""
 
 import os
 import sys
@@ -42,17 +42,25 @@ def get_documents(doc_dir_path: str):
 def store_vector_index(doc_dir: str):
     """Load the documents, embed and upload it into the vector store."""
     documents = get_documents(doc_dir)
-    vector_store_service.store_documents(documents)
+    vector_store_client.store_documents(documents)
 
     return 200
 
 
 if __name__ == "__main__":
 
-    vector_index_name = os.environ.get("DB_SCHEMA_VECTOR_INDEX_NAME")
-    vector_store_service = VectorStoreFactory.get_vector_store("vector_index_name")
-
     db_schema_path = os.environ["DB_SCHEMA_PATH"]
+    vector_index_name = os.environ.get("DB_SCHEMA_VECTOR_INDEX_NAME")
+    local_vector_path = os.environ.get("QDRANT_LOCAL_VECTOR_DB_PATH")
+
+    # Initializing the vector store client
+    vector_store_client = VectorStoreFactory.get_vector_store(vector_index_name)
+
+    # Check and delete existing index if already exists
+    if vector_store_client.index_exists():
+        vector_store_client.delete_index()
+    # Create new vector index
+    vector_store_client.create_index()
 
     # Getting the list of schemas available
     db_schema_folders = [
