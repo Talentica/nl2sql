@@ -9,9 +9,10 @@ import uuid
 # Add the project root directory to sys.path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.insert(0, project_root)
-from src.vector_store.VectorStoreFactory import VectorStoreFactory
+# load environment variables from .env file
+load_dotenv()
 
-load_dotenv(os.path.join(os.getcwd(), ".env"))
+from src.vector_store.VectorStoreFactory import VectorStoreFactory
 
 
 def get_documents(doc_dir_path: str):

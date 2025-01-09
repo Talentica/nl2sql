@@ -2,13 +2,9 @@ import os
 from langchain_community.utilities import SQLDatabase
 from src.constants.datatypes import SQL_DIALECTS
 import sqlalchemy
-from sqlalchemy import create_engine, inspect, text
+from sqlalchemy import create_engine
 import pymysql
 import urllib.parse
-from dotenv import load_dotenv, find_dotenv
-import os
-
-load_dotenv(os.path.join(os.getcwd(), ".env"))
 
 
 def get_db():

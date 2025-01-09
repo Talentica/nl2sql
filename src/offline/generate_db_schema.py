@@ -1,18 +1,18 @@
-import logging
+"""Module to generate available database schema"""
+
 import sys
 import os
 import sqlalchemy
-from sqlalchemy import create_engine, inspect, text
-import urllib.parse
-from dotenv import load_dotenv, find_dotenv
+from sqlalchemy import inspect, text
+from dotenv import load_dotenv
 
 # Add the project root directory to sys.path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.insert(0, project_root)
+# load environment variables from .env file
+load_dotenv()
 
 from src.db_connector.sql import connect_to_database
-
-load_dotenv(os.path.join(os.getcwd(), ".env"))
 
 
 # Function to get table name
@@ -261,8 +261,7 @@ def get_function_details(engine, routine_name):
 
 # Function to format table schema as markdown
 def format_table_schema_as_markdown(schema, table_name, sample_rows):
-    schema_md = f"# Table Schema Documentation\n\n"
-    schema_md += f"## Table: `{table_name}`\n\n"
+    schema_md = f"## Table: `{table_name}`\n\n"
 
     # Add column definitions
     schema_md += "### Column Definitions\n\n"
@@ -338,7 +337,7 @@ def format_procedure_details_as_markdown(procedure_name, details):
 
 # Function to format views as markdown
 def format_function_details_as_markdown(function_name, details):
-    markdown = f"##Function Name {function_name}`\n\n"
+    markdown = f"##Function Name: {function_name}`\n\n"
     if details["parameters"]:
         markdown += "### Parameters\n"
         markdown += "| Name | Type | Mode |\n"
