@@ -2,20 +2,13 @@
 
 import os
 import sys
-from langchain_community.vectorstores import FAISS
 from langchain_community.document_loaders import DirectoryLoader
-from langchain_community.vectorstores.azuresearch import AzureSearch
-from langchain_openai.embeddings.base import OpenAIEmbeddings
-from azure.search.documents.indexes import SearchIndexClient
-from azure.core.credentials import AzureKeyCredential
 from dotenv import load_dotenv
-import shutil
 import uuid
 
 # Add the project root directory to sys.path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.insert(0, project_root)
-from src.llm.llm_provider import LLMProvider
 from src.vector_store.VectorStoreFactory import VectorStoreFactory
 
 load_dotenv(os.path.join(os.getcwd(), ".env"))
@@ -51,7 +44,6 @@ if __name__ == "__main__":
 
     db_schema_path = os.environ["DB_SCHEMA_PATH"]
     vector_index_name = os.environ.get("DB_SCHEMA_VECTOR_INDEX_NAME")
-    local_vector_path = os.environ.get("QDRANT_LOCAL_VECTOR_DB_PATH")
 
     # Initializing the vector store client
     vector_store_client = VectorStoreFactory.get_vector_store(vector_index_name)
