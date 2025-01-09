@@ -3,7 +3,6 @@ from langchain_community.utilities import SQLDatabase
 from src.constants.datatypes import SQL_DIALECTS
 import sqlalchemy
 from sqlalchemy import create_engine
-import pymysql
 import urllib.parse
 
 
