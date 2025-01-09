@@ -66,7 +66,7 @@ def get_table_schema(engine, table_name):
         return None
 
 
-# Function to retrieve sample rows
+# Function to retrieve sample rows from table
 def get_sample_rows(engine, table_name, limit=3):
     try:
         with engine.connect() as connection:
@@ -94,7 +94,7 @@ def get_views(engine):
         print(f"Error retrieving views: {e}")
         return []
 
-
+# Function to retrieve views details
 def get_view_details(engine, view_name, sample_row_limit=3):
     try:
         with engine.connect() as connection:
@@ -164,7 +164,7 @@ def get_stored_procedures(engine):
         print(f"Error retrieving stored procedures: {e}")
         return []
 
-
+#Function to retrieve procedure details
 def get_procedure_details(engine, routine_name):
     try:
         with engine.connect() as connection:
@@ -215,7 +215,7 @@ def get_stored_functions(engine):
         print(f"Error retrieving stored functions: {e}")
         return []
 
-
+#Function to retrieve Function details
 def get_function_details(engine, routine_name):
     try:
         with engine.connect() as connection:
@@ -273,17 +273,17 @@ def format_table_schema_as_markdown(schema, table_name, sample_rows):
     # Add primary key information
     if schema["primary_keys"]:
         schema_md += "\n### Primary Keys\n\n"
-        schema_md += f"**Primary Keys**: {', '.join(schema['primary_keys'])}\n\n"
+        schema_md += f"**Primary Keys**: {', '.join(schema['primary_keys'])}\n"
 
     # Add foreign key information
     if schema["foreign_keys"]:
-        schema_md += "### Foreign Keys\n\n"
+        schema_md += "\n### Foreign Keys\n\n"
         for fk in schema["foreign_keys"]:
             schema_md += f"- `{fk['column']}` references `{fk['referred_table']}.{', '.join(fk['referred_columns'])}`\n"
 
     # Add sample rows
     if sample_rows:
-        schema_md += "### Sample Rows\n\n"
+        schema_md += "\n### Sample Rows\n\n"
         schema_md += "| " + " | ".join(sample_rows[0].keys()) + " |\n"
         schema_md += (
             "| "
@@ -301,7 +301,7 @@ def format_table_schema_as_markdown(schema, table_name, sample_rows):
 def format_view_details_as_markdown(view_name, details):
     markdown = f"## View Name: `{view_name}`\n\n"
     if details["columns"]:
-        markdown += "### Columns\n"
+        markdown += "### Columns\n\n"
         markdown += "| Name | Type | Nullable |\n"
         markdown += "|------|------|----------|\n"
         for column in details["columns"]:
@@ -311,7 +311,7 @@ def format_view_details_as_markdown(view_name, details):
 
     # Add sample rows
     if details["sample_rows"]:
-        markdown += "### Sample Rows\n\n"
+        markdown += "\n### Sample Rows\n\n"
         markdown += "| " + " | ".join(details["sample_rows"][0].keys()) + " |\n"
         markdown += (
             "| "
@@ -323,11 +323,11 @@ def format_view_details_as_markdown(view_name, details):
     return markdown
 
 
-# Function to format views as markdown
+# Function to format procedures as markdown
 def format_procedure_details_as_markdown(procedure_name, details):
     markdown = f"## Procedure Name: `{procedure_name}`\n\n"
     if details["parameters"]:
-        markdown += "### Parameters\n"
+        markdown += "### Parameters\n\n"
         markdown += "| Name | Type | Mode |\n"
         markdown += "|------|------|------|\n"
         for param in details["parameters"]:
@@ -335,16 +335,16 @@ def format_procedure_details_as_markdown(procedure_name, details):
     return markdown
 
 
-# Function to format views as markdown
+# Function to format Functions as markdown
 def format_function_details_as_markdown(function_name, details):
-    markdown = f"##Function Name: {function_name}`\n\n"
+    markdown = f"## Function Name: `{function_name}`\n\n"
     if details["parameters"]:
-        markdown += "### Parameters\n"
+        markdown += "### Parameters\n\n"
         markdown += "| Name | Type | Mode |\n"
         markdown += "|------|------|------|\n"
         for param in details["parameters"]:
-            markdown += f"| {param['name']} | {param['type']} | {param['mode']} |\n\n"
-    markdown += f"### Output Type\n{details['return_type']}\n"
+            markdown += f"| {param['name']} | {param['type']} | {param['mode']} |\n"
+    markdown += f"\n### Output Type\n\n{details['return_type']}\n"
     return markdown
 
 
