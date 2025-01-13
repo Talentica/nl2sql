@@ -1,4 +1,4 @@
-"""Module providing a langchain tool for relevant schema retriever."""
+"""Module providing a langchain tool for retrieving relevant schema and example queries."""
 
 import os
 import sys
@@ -14,23 +14,25 @@ load_dotenv()
 
 from src.vector_store.VectorStoreFactory import VectorStoreFactory
 
-
 @tool
-def get_relevant_schema_information(concised_question: str) -> str:
-    """This tool provides relevant database schema information for the given question."""
+def get_schema_and_sql_information(concised_question: str) -> str:
+    """This tool provides relevant database schema information and example queries for the given question."""
     with ThreadPoolExecutor() as executor:
-        future_schema = executor.submit(get_schema_information, concised_question)
+        future_schema = executor.submit(get_db_schema_information, concised_question)
+        future_query = executor.submit(get_similar_query, concised_question)
 
         schema_info = future_schema.result()
-    return schema_info
+        query_info = future_query.result()
 
+    return schema_info + query_info
 
-def get_schema_information(concised_question: str) -> str:
+def get_db_schema_information(concised_question: str) -> str:
+    """ This tool provides relevant db schema to user question."""
 
     k = 5
-    vector_index_name = os.environ["DB_SCHEMA_VECTOR_INDEX_NAME"]
+    schema_index_name = os.environ["DB_SCHEMA_VECTOR_INDEX_NAME"]
     documents = fetch_relevant_documents(
-        concised_question, k=k, vector_index_name=vector_index_name
+        concised_question, k=k, vector_index_name=schema_index_name
     )
 
     schema_information = "Following are the relevant schema information I found: \n"
@@ -38,9 +40,23 @@ def get_schema_information(concised_question: str) -> str:
         schema_information = schema_information + doc.page_content + "\n\n"
     return schema_information
 
+def get_similar_query(concised_question: str) -> str:
+    """ This tool provides queries similar to user question."""
+
+    k = 4
+    query_index_name = os.environ['SQL_QUERY_VECTOR_INDEX_NAME']
+    documents = fetch_relevant_documents(
+        concised_question, k=k, vector_index_name=query_index_name
+    )    
+    similar_queries="Following are the similar queries I found: \n"
+    for doc in documents:
+        similar_queries=similar_queries+doc.page_content+'\n\n'
+    return similar_queries
+
 
 def fetch_relevant_documents(concised_question, k: int, vector_index_name: str):
 
+    #Initialize vector index
     vector_store_client = VectorStoreFactory.get_vector_store(vector_index_name)
     documents = vector_store_client.retrieve_documents(concised_question, k)
 
@@ -50,5 +66,5 @@ def fetch_relevant_documents(concised_question, k: int, vector_index_name: str):
 if __name__ == "__main__":
 
     question = sys.argv[1]
-    result = get_relevant_schema_information.invoke(question)
+    result = get_schema_and_sql_information.invoke(question)
     print(result)
