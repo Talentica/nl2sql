@@ -2,7 +2,8 @@ import os
 from enum import Enum
 from typing import Any
 from src.llm.llm_provider import LLMProvider
-from src.vector_store.QdrantHandler import QdrantHandler
+from vector_store.QdrantCloudHandler import QdrantCloudHandler
+from vector_store.QdrantLocalHandler import QdrantLocalHandler
 from src.vector_store.FAISSHandler import FAISSHandler
 from src.vector_store.AzureSearchHandler import AzureSearchHandler
 from src.vector_store.BaseVectorStoreHandler import BaseVectorStoreHandler
@@ -59,11 +60,13 @@ class VectorStoreFactory:
         return handler_mapping[provider](index_name, embeddings)
 
     @staticmethod
-    def _create_qdrant_local(vector_index_name: str, embeddings: Any) -> QdrantHandler:
+    def _create_qdrant_local(
+        vector_index_name: str, embeddings: Any
+    ) -> QdrantCloudHandler:
         qdrant_local_db_path = _get_env_var(
             "QDRANT_LOCAL_VECTOR_DB_PATH", required=True
         )
-        return QdrantHandler(
+        return QdrantLocalHandler(
             collection_name=vector_index_name,
             embeddings=embeddings,
             storage_type="local",
@@ -71,10 +74,12 @@ class VectorStoreFactory:
         )
 
     @staticmethod
-    def _create_qdrant_cloud(vector_index_name: str, embeddings: Any) -> QdrantHandler:
+    def _create_qdrant_cloud(
+        vector_index_name: str, embeddings: Any
+    ) -> QdrantCloudHandler:
         qdrant_url = _get_env_var("QDRANT_CLOUD_URL", required=True)
         qdrant_api_key = _get_env_var("QDRANT_CLOUD_API_KEY", required=False)
-        return QdrantHandler(
+        return QdrantCloudHandler(
             collection_name=vector_index_name,
             embeddings=embeddings,
             storage_type="cloud",

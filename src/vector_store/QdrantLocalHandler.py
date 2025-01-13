@@ -7,7 +7,7 @@ from langchain_core.documents import Document
 from src.vector_store.BaseVectorStoreHandler import BaseVectorStoreHandler
 
 
-class QdrantHandler(BaseVectorStoreHandler):
+class QdrantLocalHandler(BaseVectorStoreHandler):
     """Handler for Qdrant vector store."""
 
     def __init__(
@@ -15,7 +15,7 @@ class QdrantHandler(BaseVectorStoreHandler):
         collection_name: str,
         embeddings: OpenAIEmbeddings,
         storage_type: str,
-        **kwargs,
+        qdrant_path: str,
     ):
         """
         Initialize the Qdrant Handler.
@@ -27,59 +27,26 @@ class QdrantHandler(BaseVectorStoreHandler):
                                 - "cloud": Use Qdrant Cloud.
             collection_name (str): The name of the Qdrant collection to operate on.
             embeddings (OpenAIEmbeddings): The embedding model to generate vector embeddings.
-            kwargs: Additional configuration parameters based on the storage type.
 
-        Keyword Args:
-            For "local" storage_type:
-                - qdrant_path (str): The file system path for Qdrant on-disk storage.
-                Example: "./qdrant_data".
-
-            For "cloud" storage_type:
-                - url (str): The URL of the On-premise server deployment or Qdrant Cloud instance.
-                Example: "https://<your-qdrant-cloud-instance-url>".
-                - api_key (str): The API key for authenticating with Qdrant Cloud.
-
-        Raises:
-            ValueError: If invalid `storage_type` is provided or required arguments for the chosen
-                        storage type are missing.
         """
         self.storage_type = storage_type
         self.collection_name = collection_name
         self.embeddings = embeddings
+        self.qdrant_path = qdrant_path
 
-        self.client = self._initialize_client(**kwargs)
-
-    def _initialize_client(self, **kwargs):
+    def _get_client(self):
         """
-        Initialize the Qdrant client based on the provided storage type.
+        Initialize the Qdrant client.
         """
-        if self.storage_type == "local":
-            qdrant_path = kwargs.get("qdrant_path", None)
-            if not qdrant_path:
-                raise ValueError(
-                    "qdrant_path is required for local quadrant disk storage."
-                )
-            return QdrantClient(path=qdrant_path)
-
-        elif self.storage_type == "cloud":
-            url = kwargs.get("url", None)
-            api_key = kwargs.get("api_key", None)
-            if not url:
-                raise ValueError(
-                    "url is required for On-premise server deployment or Qdrant Cloud."
-                )
-            return QdrantClient(url=url, api_key=api_key)
-
-        else:
-            raise ValueError(
-                f"Invalid storage_type: {self.storage_type}. Valid options are 'local' or 'cloud'."
-            )
+        return QdrantClient(path=self.qdrant_path)
 
     def create_index(self):
-        self.client.create_collection(
+        client = self._get_client()
+        client.create_collection(
             collection_name=self.collection_name,
             vectors_config=VectorParams(size=3072, distance=Distance.COSINE),
         )
+        del client
         print(f"Collection '{self.collection_name}' created successfully.")
 
     def index_exists(self):
@@ -87,7 +54,9 @@ class QdrantHandler(BaseVectorStoreHandler):
         Check if index already exist.
         """
         try:
-            self.client.get_collection(collection_name=self.collection_name)
+            client = self._get_client()
+            client.get_collection(collection_name=self.collection_name)
+            del client
             return True
         except Exception:
             return False
@@ -108,19 +77,25 @@ class QdrantHandler(BaseVectorStoreHandler):
         ]
 
         # Upsert points into the collection
-        self.client.upsert(collection_name=self.collection_name, points=points)
+        client = self._get_client()
+        client.upsert(collection_name=self.collection_name, points=points)
+        del client
 
     def delete_index(self):
-        self.client.delete_collection(self.collection_name)
+        client = self._get_client()
+        client.delete_collection(self.collection_name)
         print(f"Deleted Qdrant collection: {self.collection_name}")
+        del client
 
     def retrieve_documents(self, query, k):
         query_vector = self.embeddings.embed_query(query)
-        results = self.client.search(
+        client = self._get_client()
+        results = client.search(
             collection_name=self.collection_name,
             query_vector=query_vector,
             limit=k,
         )
+        del client
 
         # Convert search results to langchain document format
         documents = [
