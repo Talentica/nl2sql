@@ -2,8 +2,8 @@ import os
 from enum import Enum
 from typing import Any
 from src.llm.llm_provider import LLMProvider
-from vector_store.QdrantCloudHandler import QdrantCloudHandler
-from vector_store.QdrantLocalHandler import QdrantLocalHandler
+from src.vector_store.QdrantCloudHandler import QdrantCloudHandler
+from src.vector_store.QdrantLocalHandler import QdrantLocalHandler
 from src.vector_store.FAISSHandler import FAISSHandler
 from src.vector_store.AzureSearchHandler import AzureSearchHandler
 from src.vector_store.BaseVectorStoreHandler import BaseVectorStoreHandler

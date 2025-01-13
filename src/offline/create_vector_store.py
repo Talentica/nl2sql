@@ -83,8 +83,6 @@ def create_db_schema_index():
 
     logging.info(f"Vector index '{db_schema_index_name}' created successfully!")
 
-    del schema_vector_store
-
 
 def create_sql_query_index():
     """Creates a vector index for SQL queries."""
@@ -111,8 +109,6 @@ def create_sql_query_index():
 
     query_vector_store.store_documents(documents)
     logging.info(f"Vector index '{sql_query_index_name}' created successfully!")
-
-    del query_vector_store
 
 
 if __name__ == "__main__":
