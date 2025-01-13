@@ -39,7 +39,7 @@ def get_db_schema_information(concised_question: str) -> str:
 
     schema_information = "Following are the relevant schema information I found: \n"
     for doc in documents:
-        schema_information = schema_information + doc.page_content + "\n\n"
+        schema_information += doc.page_content + "\n"
     return schema_information
 
 
@@ -53,7 +53,14 @@ def get_similar_query(concised_question: str) -> str:
     )
     similar_queries = "Following are the similar queries I found: \n"
     for doc in documents:
-        similar_queries = similar_queries + doc.page_content + "\n\n"
+        similar_queries += (
+            "question: "
+            + doc.page_content
+            + "\n"
+            + "sql_query: "
+            + doc.metadata["sql_query"]
+            + "\n"
+        )
     return similar_queries
 
 
