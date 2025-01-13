@@ -5,6 +5,7 @@ import os
 import sqlalchemy
 from sqlalchemy import inspect, text
 from dotenv import load_dotenv
+import re
 
 # Add the project root directory to sys.path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
@@ -248,7 +249,7 @@ def get_function_details(engine, routine_name):
                 "parameters": (
                     [
                         {"name": row[0], "type": row[1], "mode": row[2]}
-                        for row in params_result
+                        for row in params_result if row[0] is not None
                     ]
                     if params_result
                     else []
@@ -257,33 +258,31 @@ def get_function_details(engine, routine_name):
     except Exception as e:
         print(f"Error retrieving function details for {routine_name}: {e}")
         return {}
-
-
+    
 # Function to format table schema as markdown
 def format_table_schema_as_markdown(schema, table_name, sample_rows):
     schema_md = f"## Table: `{table_name}`\n\n"
 
     # Add column definitions
-    schema_md += "### Column Definitions\n\n"
-    schema_md += "| Column Name | Data Type | Nullable |\n"
+    schema_md += "Columns: \n\n"
+    schema_md += "|Name |Type |Nullable |\n"
     schema_md += "|-------------|-----------|----------|\n"
     for column in schema["columns"]:
-        schema_md += f"| {column['name']} | {column['type']} | {'Yes' if column['nullable'] else 'No'} |\n"
+        schema_md += f"|{column['name']} |{column['type']} |{'Yes' if column['nullable'] else 'No'} |\n"
 
     # Add primary key information
     if schema["primary_keys"]:
-        schema_md += "\n### Primary Keys\n\n"
-        schema_md += f"**Primary Keys**: {', '.join(schema['primary_keys'])}\n"
+        schema_md += f"Primary Keys: *{', '.join(schema['primary_keys'])}*\n"
 
     # Add foreign key information
     if schema["foreign_keys"]:
-        schema_md += "\n### Foreign Keys\n\n"
+        schema_md += "\nForeign Keys:\n\n"
         for fk in schema["foreign_keys"]:
             schema_md += f"- `{fk['column']}` references `{fk['referred_table']}.{', '.join(fk['referred_columns'])}`\n"
 
     # Add sample rows
     if sample_rows:
-        schema_md += "\n### Sample Rows\n\n"
+        schema_md += "\nSample Rows:\n\n"
         schema_md += "| " + " | ".join(sample_rows[0].keys()) + " |\n"
         schema_md += (
             "| "
@@ -291,27 +290,41 @@ def format_table_schema_as_markdown(schema, table_name, sample_rows):
             + " |\n"
         )
         for row in sample_rows:
-            schema_md += (
-                "| " + " | ".join(str(value) for value in row.values()) + " |\n"
-            )
-    return schema_md
+            formatted_values = []
+            for column in schema["columns"]:
+                column_name = column["name"]
+                column_type = column["type"]
+                value = row.get(column_name)
 
+                # Apply logic for blob data type
+                if column_type.lower() == "blob":
+                    if value is None:
+                        formatted_values.append(str(value))
+                    else:
+                        formatted_values.append("blob")
+                else:
+                    formatted_values.append(str(value))
+
+            schema_md += "| " + " | ".join(formatted_values) + " |\n"
+
+    schema_md = re.sub(r'\n\s*\n', '\n', schema_md).strip()
+    return schema_md
 
 # Function to format views as markdown
 def format_view_details_as_markdown(view_name, details):
-    markdown = f"## View Name: `{view_name}`\n\n"
+    markdown = f"## View: `{view_name}`\n\n"
     if details["columns"]:
-        markdown += "### Columns\n\n"
-        markdown += "| Name | Type | Nullable |\n"
+        markdown += "Columns:\n\n"
+        markdown += "|Name |Type |Nullable |\n"
         markdown += "|------|------|----------|\n"
         for column in details["columns"]:
             markdown += (
-                f"| {column['name']} | {column['type']} | {column['nullable']} |\n"
+                f"|{column['name']} |{column['type']} |{column['nullable']} |\n"
             )
 
     # Add sample rows
     if details["sample_rows"]:
-        markdown += "\n### Sample Rows\n\n"
+        markdown += "\nSample Rows:\n\n"
         markdown += "| " + " | ".join(details["sample_rows"][0].keys()) + " |\n"
         markdown += (
             "| "
@@ -320,31 +333,34 @@ def format_view_details_as_markdown(view_name, details):
         )
         for row in details["sample_rows"]:
             markdown += "| " + " | ".join(str(value) for value in row.values()) + " |\n"
+    markdown = re.sub(r'\n\s*\n', '\n', markdown).strip()
     return markdown
 
 
 # Function to format procedures as markdown
 def format_procedure_details_as_markdown(procedure_name, details):
-    markdown = f"## Procedure Name: `{procedure_name}`\n\n"
+    markdown = f"## Procedure: `{procedure_name}`\n\n"
     if details["parameters"]:
-        markdown += "### Parameters\n\n"
-        markdown += "| Name | Type | Mode |\n"
+        markdown += "Parameters:\n\n"
+        markdown += "|Name |Type |Mode |\n"
         markdown += "|------|------|------|\n"
         for param in details["parameters"]:
-            markdown += f"| {param['name']} | {param['type']} | {param['mode']} |\n"
+            markdown += f"|{param['name']} |{param['type']} |{param['mode']} |\n"
+    markdown = re.sub(r'\n\s*\n', '\n', markdown).strip()
     return markdown
 
 
 # Function to format Functions as markdown
 def format_function_details_as_markdown(function_name, details):
-    markdown = f"## Function Name: `{function_name}`\n\n"
+    markdown = f"## Function: `{function_name}`\n\n"
     if details["parameters"]:
-        markdown += "### Parameters\n\n"
-        markdown += "| Name | Type | Mode |\n"
+        markdown += "Parameters:\n\n"
+        markdown += "|Name |Type |Mode |\n"
         markdown += "|------|------|------|\n"
         for param in details["parameters"]:
-            markdown += f"| {param['name']} | {param['type']} | {param['mode']} |\n"
-    markdown += f"\n### Output Type\n\n{details['return_type']}\n"
+            markdown += f"|{param['name']} |{param['type']} |{param['mode']} |\n"
+    markdown += f"\nOutput Type:\n\n{details['return_type']}\n"
+    markdown = re.sub(r'\n\s*\n', '\n', markdown).strip()
     return markdown
 
 
