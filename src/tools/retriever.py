@@ -14,6 +14,7 @@ load_dotenv()
 
 from src.vector_store.VectorStoreFactory import VectorStoreFactory
 
+
 @tool
 def get_schema_and_sql_information(concised_question: str) -> str:
     """This tool provides relevant database schema information and example queries for the given question."""
@@ -26,8 +27,9 @@ def get_schema_and_sql_information(concised_question: str) -> str:
 
     return schema_info + query_info
 
+
 def get_db_schema_information(concised_question: str) -> str:
-    """ This tool provides relevant db schema to user question."""
+    """This tool provides relevant db schema to user question."""
 
     k = 5
     schema_index_name = os.environ["DB_SCHEMA_VECTOR_INDEX_NAME"]
@@ -40,23 +42,24 @@ def get_db_schema_information(concised_question: str) -> str:
         schema_information = schema_information + doc.page_content + "\n\n"
     return schema_information
 
+
 def get_similar_query(concised_question: str) -> str:
-    """ This tool provides queries similar to user question."""
+    """This tool provides queries similar to user question."""
 
     k = 4
-    query_index_name = os.environ['SQL_QUERY_VECTOR_INDEX_NAME']
+    query_index_name = os.environ["SQL_QUERY_VECTOR_INDEX_NAME"]
     documents = fetch_relevant_documents(
         concised_question, k=k, vector_index_name=query_index_name
-    )    
-    similar_queries="Following are the similar queries I found: \n"
+    )
+    similar_queries = "Following are the similar queries I found: \n"
     for doc in documents:
-        similar_queries=similar_queries+doc.page_content+'\n\n'
+        similar_queries = similar_queries + doc.page_content + "\n\n"
     return similar_queries
 
 
 def fetch_relevant_documents(concised_question, k: int, vector_index_name: str):
 
-    #Initialize vector index
+    # Initialize vector index
     vector_store_client = VectorStoreFactory.get_vector_store(vector_index_name)
     documents = vector_store_client.retrieve_documents(concised_question, k)
 

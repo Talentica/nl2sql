@@ -15,18 +15,19 @@ load_dotenv()
 
 from src.db_connector.sql import connect_to_database
 
-
 # Function to get table name
 def get_table_name(engine):
     try:
         with engine.connect() as connection:
-            result = connection.execute(text("show tables"))
+            # Modify the query to exclude views
+            result = connection.execute(
+                text("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = DATABASE()")
+            )
             table_names = [row[0] for row in result]
             return table_names
     except Exception as e:
-        print(f"Error retrieving table_names: {e}")
+        print(f"Error retrieving table names: {e}")
         return []
-
 
 # Function to retrieve table schema
 def get_table_schema(engine, table_name):
