@@ -63,6 +63,7 @@ class VectorStoreFactory:
         qdrant_local_db_path = _get_env_var(
             "QDRANT_LOCAL_VECTOR_DB_PATH", required=True
         )
+        qdrant_local_db_path = os.path.join(qdrant_local_db_path, vector_index_name)
         return QdrantHandler(
             collection_name=vector_index_name,
             embeddings=embeddings,

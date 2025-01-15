@@ -20,11 +20,16 @@ from src.db_connector.sql import connect_to_database
 def get_table_name(engine):
     try:
         with engine.connect() as connection:
-            result = connection.execute(text("show tables"))
+            # Modify the query to exclude views
+            result = connection.execute(
+                text(
+                    "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = DATABASE()"
+                )
+            )
             table_names = [row[0] for row in result]
             return table_names
     except Exception as e:
-        print(f"Error retrieving table_names: {e}")
+        print(f"Error retrieving table names: {e}")
         return []
 
 
@@ -94,6 +99,7 @@ def get_views(engine):
     except Exception as e:
         print(f"Error retrieving views: {e}")
         return []
+
 
 # Function to retrieve views details
 def get_view_details(engine, view_name, sample_row_limit=3):
@@ -165,7 +171,8 @@ def get_stored_procedures(engine):
         print(f"Error retrieving stored procedures: {e}")
         return []
 
-#Function to retrieve procedure details
+
+# Function to retrieve procedure details
 def get_procedure_details(engine, routine_name):
     try:
         with engine.connect() as connection:
@@ -216,7 +223,8 @@ def get_stored_functions(engine):
         print(f"Error retrieving stored functions: {e}")
         return []
 
-#Function to retrieve Function details
+
+# Function to retrieve Function details
 def get_function_details(engine, routine_name):
     try:
         with engine.connect() as connection:
@@ -249,7 +257,8 @@ def get_function_details(engine, routine_name):
                 "parameters": (
                     [
                         {"name": row[0], "type": row[1], "mode": row[2]}
-                        for row in params_result if row[0] is not None
+                        for row in params_result
+                        if row[0] is not None
                     ]
                     if params_result
                     else []
@@ -258,7 +267,8 @@ def get_function_details(engine, routine_name):
     except Exception as e:
         print(f"Error retrieving function details for {routine_name}: {e}")
         return {}
-    
+
+
 # Function to format table schema as markdown
 def format_table_schema_as_markdown(schema, table_name, sample_rows):
     schema_md = f"## Table: `{table_name}`\n\n"
@@ -307,8 +317,9 @@ def format_table_schema_as_markdown(schema, table_name, sample_rows):
 
             schema_md += "| " + " | ".join(formatted_values) + " |\n"
 
-    schema_md = re.sub(r'\n\s*\n', '\n', schema_md).strip()
+    schema_md = re.sub(r"\n\s*\n", "\n", schema_md).strip()
     return schema_md
+
 
 # Function to format views as markdown
 def format_view_details_as_markdown(view_name, details):
@@ -318,9 +329,7 @@ def format_view_details_as_markdown(view_name, details):
         markdown += "|Name |Type |Nullable |\n"
         markdown += "|------|------|----------|\n"
         for column in details["columns"]:
-            markdown += (
-                f"|{column['name']} |{column['type']} |{column['nullable']} |\n"
-            )
+            markdown += f"|{column['name']} |{column['type']} |{column['nullable']} |\n"
 
     # Add sample rows
     if details["sample_rows"]:
@@ -333,7 +342,7 @@ def format_view_details_as_markdown(view_name, details):
         )
         for row in details["sample_rows"]:
             markdown += "| " + " | ".join(str(value) for value in row.values()) + " |\n"
-    markdown = re.sub(r'\n\s*\n', '\n', markdown).strip()
+    markdown = re.sub(r"\n\s*\n", "\n", markdown).strip()
     return markdown
 
 
@@ -346,7 +355,7 @@ def format_procedure_details_as_markdown(procedure_name, details):
         markdown += "|------|------|------|\n"
         for param in details["parameters"]:
             markdown += f"|{param['name']} |{param['type']} |{param['mode']} |\n"
-    markdown = re.sub(r'\n\s*\n', '\n', markdown).strip()
+    markdown = re.sub(r"\n\s*\n", "\n", markdown).strip()
     return markdown
 
 
@@ -360,7 +369,7 @@ def format_function_details_as_markdown(function_name, details):
         for param in details["parameters"]:
             markdown += f"|{param['name']} |{param['type']} |{param['mode']} |\n"
     markdown += f"\nOutput Type:\n\n{details['return_type']}\n"
-    markdown = re.sub(r'\n\s*\n', '\n', markdown).strip()
+    markdown = re.sub(r"\n\s*\n", "\n", markdown).strip()
     return markdown
 
 
