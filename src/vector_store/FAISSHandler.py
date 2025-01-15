@@ -14,13 +14,13 @@ class FAISSHandler(BaseVectorStoreHandler):
         self.faiss_db_path = faiss_path
         self.vector_store = self._get_FAISS_db()
 
-    def store_documents(self, documents):
+    def store_documents(self, documents, **kwargs):
         self.vector_store.add_documents(documents)
         self.vector_store.save_local(
             folder_path=self.faiss_db_path, index_name=self.index_name
         )
 
-    def create_index(self):
+    def create_index(self, **kwargs):
         index = faiss.IndexFlatL2(len(self.embeddings.embed_query("hello world")))
         self.vector_store = FAISS(
             embedding_function=self.embeddings,
@@ -29,21 +29,21 @@ class FAISSHandler(BaseVectorStoreHandler):
             index_to_docstore_id={},
         )
 
-    def index_exists(self):
+    def index_exists(self, **kwargs):
         if os.path.exists(self.faiss_db_path):
             faiss_file = "{0}/{1}.faiss".format(self.faiss_db_path, self.index_name)
             pkl_file = "{0}/{1}.pkl".format(self.faiss_db_path, self.index_name)
             return os.path.isfile(faiss_file) and os.path.isfile(pkl_file)
         return False
 
-    def delete_index(self):
+    def delete_index(self, **kwargs):
         faiss_file = "{0}/{1}.faiss".format(self.faiss_db_path, self.index_name)
         pkl_file = "{0}/{1}.pkl".format(self.faiss_db_path, self.index_name)
         self._delete_file(faiss_file)
         self._delete_file(pkl_file)
         print(f"Deleted FAISS vector store index: {self.index_name}")
 
-    def retrieve_documents(self, query, k):
+    def retrieve_documents(self, query, k, **kwargs):
         retriever = self.vector_store.as_retriever(
             search_type="similarity", search_kwargs={"k": k}
         )

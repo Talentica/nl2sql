@@ -16,23 +16,23 @@ class AzureSearchHandler(BaseVectorStoreHandler):
         self.embeddings = embeddings
         self.vector_store = self._get_existing_azure_search()
 
-    def store_documents(self, documents):
+    def store_documents(self, documents, **kwargs):
         self.vector_store.add_documents(documents=documents)
 
-    def create_index(self):
+    def create_index(self, **kwargs):
         self.vector_store = self._get_azure_vector_store()
 
-    def index_exists(self):
+    def index_exists(self, **kwargs):
         client = SearchIndexClient(
             self.vector_store_address, AzureKeyCredential(self.vector_store_password)
         )
         try:
-            client.get_index()
+            client.get_index(name=self.azure_index_name)
             return True
         except Exception:
             return False
 
-    def delete_index(self):
+    def delete_index(self, **kwargs):
         if not self.index_exists():
             raise Exception(f"Index {self.azure_index_name} does not exist!")
 
@@ -42,7 +42,7 @@ class AzureSearchHandler(BaseVectorStoreHandler):
         client.delete_index(self.azure_index_name)
         print(f"Deleted Azure index: {self.azure_index_name}")
 
-    def retrieve_documents(self, query, k):
+    def retrieve_documents(self, query, k, **kwargs):
         return self.vector_store.similarity_search(
             query=query, k=k, search_type="similarity"
         )

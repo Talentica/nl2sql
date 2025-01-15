@@ -4,11 +4,11 @@ from langchain_core.documents import Document
 class BaseVectorStoreHandler:
     """Base class for vector store handlers."""
 
-    def create_index(self):
+    def create_index(self, **kwargs):
         """Create the vector index. Initializes or resets the index to a new state."""
         raise NotImplementedError
 
-    def index_exists(self) -> bool:
+    def index_exists(self, **kwargs) -> bool:
         """
         Check if the vector index exists.
             Returns:
@@ -16,7 +16,7 @@ class BaseVectorStoreHandler:
         """
         raise NotImplementedError
 
-    def store_documents(self, documents: list[Document]):
+    def store_documents(self, documents: list[Document], **kwargs):
         """
         Store documents in the vector index.
             Args:
@@ -25,13 +25,13 @@ class BaseVectorStoreHandler:
         """
         raise NotImplementedError
 
-    def delete_index(self):
+    def delete_index(self, **kwargs):
         """
         Delete the vector index. Removes all stored data and the index itself.
         """
         raise NotImplementedError
 
-    def retrieve_documents(self, query: str, k: int) -> list[Document]:
+    def retrieve_documents(self, query: str, k: int, **kwargs) -> list[Document]:
         """
         Retrieve documents from the vector index based on a query.
             Args:
