@@ -44,8 +44,10 @@ class FAISSHandler(BaseVectorStoreHandler):
         print(f"Deleted FAISS vector store index: {self.index_name}")
 
     def retrieve_documents(self, query, k, **kwargs):
+        score_threshold = kwargs.get("score_threshold", 0.5)
         retriever = self.vector_store.as_retriever(
-            search_type="similarity", search_kwargs={"k": k}
+            search_type="similarity",
+            search_kwargs={"k": k, "score_threshold": score_threshold},
         )
         return retriever.invoke(query)
 

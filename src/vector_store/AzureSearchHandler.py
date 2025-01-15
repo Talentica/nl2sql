@@ -43,9 +43,13 @@ class AzureSearchHandler(BaseVectorStoreHandler):
         print(f"Deleted Azure index: {self.azure_index_name}")
 
     def retrieve_documents(self, query, k, **kwargs):
-        return self.vector_store.similarity_search(
-            query=query, k=k, search_type="similarity"
+        score_threshold = kwargs.get("score_threshold", 0.5)
+        retriever = self.vector_store.as_retriever(
+            search_type="similarity",
+            k=k,
+            search_kwargs={"score_threshold": score_threshold},
         )
+        return retriever.invoke(query)
 
     def _get_azure_vector_store(self):
         return AzureSearch(

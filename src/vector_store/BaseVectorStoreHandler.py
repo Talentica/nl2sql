@@ -37,6 +37,11 @@ class BaseVectorStoreHandler:
             Args:
                 query (str): The input query to search for similar documents.
                 k (int): The number of top results to retrieve.
+                kwargs (Optional[Dict]): Keyword arguments to pass to the
+                    search function.
+                        score_threshold: Minimum relevance threshold
+                            for similarity_score_threshold. Defaults to 0.5
+
             Returns:
                 list[Document]: A list of retrieved documents, including their content and metadata.
         """

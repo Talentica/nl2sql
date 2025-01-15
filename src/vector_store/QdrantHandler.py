@@ -116,9 +116,11 @@ class QdrantHandler(BaseVectorStoreHandler):
 
     def retrieve_documents(self, query, k, **kwargs):
         query_vector = self.embeddings.embed_query(query)
+        score_threshold = kwargs.get("score_threshold", 0.5)
         results = self.client.search(
             collection_name=self.collection_name,
             query_vector=query_vector,
+            score_threshold=score_threshold,
             limit=k,
         )
 
